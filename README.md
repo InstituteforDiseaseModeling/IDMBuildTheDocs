@@ -82,8 +82,8 @@ _</br>Please note that example above is for internal access only_
       run: |
         >> Here your installation steps including the requiremets to build your docs (like Sphinx ) <<
 
-    - name: Build Documentation for Preview and Tar file
-      uses:  IDMPublicActions/BuildTheDocs@v1.0.2
+    - name: Build Documentation for HTML ReadTheDocs Preview and text build Tar file
+      uses:  InstituteforDiseaseModeling/IDMBuildTheDocs@v1.0.0
       with:
          working_directory: 'docs'
          blob_endpoint: 'https://something.z5.web.core.windows.net'
