@@ -1,0 +1,139 @@
+name: 'Sphinx Azure Upload'
+description: 'Builds HTML and Text docs then uploads to Azure Blob storage'
+author:  'Minerva Enriquez'
+inputs: 
+  working_directory:
+    description: 'Documents root folder name'
+    default: 'docs'
+    required: false
+  blob_endpoint:
+    description: 'Azure blob endpoint'
+    required: true
+  target_location:
+    description: 'Target Location and repo identifier, i.e. idm/repository'
+    required: true
+  blob_container_name:
+    description: 'Azure container name'
+    required: true
+  index_html:
+    description: 'Landing page name for your documents project, it is by default index.html'
+    default: 'index.html'
+    required: false
+  make_text:
+    description: "determines if the sphinx build TAR file with the text file is generated"
+    default: true
+  tar_file_name:
+    description: 'Unique TAR file name'
+    required: true
+  tar_target_folder:
+    description: 'Tar destination Folder Name'
+    required: false
+    default: 'download/tar'
+  service_principal_credentials:
+    description: "BLOB_JSON_SERVICE_PRINCIPAL_CREDENTIALS"
+    required: true
+  account_name:
+    description: "Azure Account name"
+    required: true
+  cdn_profile_name: 
+    description: "Blob container CDN web profile name"
+    required: true
+  cdn_endpoint_name:
+    description: "Blob cdn end point name"
+    required: true
+  resource_group:
+    description: "Resource group name"
+    required: true
+  pr_update_token:
+    description: "Github token"
+    required: true
+
+outputs: 
+  yourlink:
+    description: 'This is the entry point to the generated documents'
+    value: ${{ steps.docsbuild.outputs.yourlink }}
+
+runs:
+  using: 'composite'
+  steps:
+  # BUILD HTML FILES
+    - name: Build HTML docs 
+      id: build-docs
+      shell: bash
+      run: |
+        cd ${{ inputs.working_directory }}
+        echo "Working directory: ${{ inputs.working_directory }}"
+        make clean
+        make htmlnobreak
+        ls -l
+        
+    # IF MAKE TEXT IS REQUESTED, THEN BUILD IT 
+    - name: Generate TAR file
+      if: ${{ inputs.make_text }}
+      shell: bash
+      run: |
+        cd ${{ inputs.working_directory }}
+        make text
+        echo "LINK_TO_TAR=${{ inputs.blob_endpoint }}/${{ inputs.target_location }}/${{ inputs.tar_target_folder }}/${{ inputs.tar_file_name }}.tar.gz" >> $GITHUB_ENV      
+        tar -czvf ${{ inputs.tar_file_name }}.tar.gz _build/text/ && mkdir _tar && mv ${{ inputs.tar_file_name }}.tar.gz _tar/ && ls -l 
+
+    # Generates Unique folder name
+    - name: Get current date to generate partial url link
+      shell: bash 
+      id: date
+      run: |
+        echo "THIS_RUN=$(TZ='America/Los_Angeles' date +'%B%d-%H%M%S')" >> $GITHUB_ENV
+        echo "NOW=$(TZ='America/Los_Angeles' date +'%b %d-%H:%M.%S')" >> $GITHUB_ENV
+      
+        
+    - name: Create staging documents URL      
+      shell: bash 
+      run: |
+        echo  "Create staging documents URL"
+        echo "DESTINATION_PATH='${{ inputs.blob_container_name }}/${{ inputs.target_location }}/${{env.THIS_RUN}}/${{ inputs.working_directory }}'" >> $GITHUB_ENV
+        echo "LINK_URL=${{ inputs.blob_endpoint }}/${{ inputs.target_location }}/${{env.THIS_RUN}}/${{ inputs.working_directory }}/${{ inputs.index_html }}" >> $GITHUB_ENV
+
+    # AZURE LOGIN:
+    - uses: azure/login@v1
+      with:
+          creds: ${{ inputs.service_principal_credentials }} 
+
+    - uses: azure/CLI@v1      
+      with:
+        inlineScript: |
+          echo '** Uploading HTML build to Azure Container **'
+          az storage blob upload-batch -s ${{ inputs.working_directory }}/_build/html --account-name ${{ inputs.account_name }}  --auth-mode key -d '${{ inputs.blob_container_name}}/${{ inputs.target_location }}/${{env.THIS_RUN}}/${{ inputs.working_directory }}'
+           
+          if [ ${{ inputs.make_text }} ] 
+            then
+              echo '** Uploading Text Build Tar file **'
+              az storage blob upload-batch -s ${{ inputs.working_directory }}/_tar --account-name ${{ inputs.account_name }} --overwrite true --auth-mode key -d '${{ inputs.blob_container_name}}/${{ inputs.target_location }}/${{ inputs.tar_target_folder }}'
+           fi
+           
+           echo '** Azure cdn endpoing purge **'
+           az cdn endpoint purge --content-paths  "/*" --profile-name ${{ inputs.cdn_profile_name }} --name ${{ inputs.cdn_endpoint_name }} --resource-group ${{ inputs.resource_group }}
+           echo '** Azure Logout **'
+           az logout
+
+            
+    # Provides the final link to the publicly accessible files.
+    - name: YOUR HTML LINK
+      shell: bash 
+      run: |
+        echo "Printing your link: ${{ env.LINK_URL }}"
+
+    - name: YOUR TAR FILE LINK
+      if: ${{ inputs.make_text }}
+      shell: bash 
+      run: |
+        echo "${{ env.LINK_TO_TAR }}"       
+
+    # Updates PR
+    - uses: mshick/add-pr-comment@v1
+      if: github.event_name == 'pull_request'
+      env:
+          GITHUB_TOKEN: ${{ inputs.pr_update_token }}
+      with:
+          message: |
+            '[->> Link to your documents from ${{env.NOW}}](${{ env.LINK_URL }})'
+      
