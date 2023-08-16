@@ -6,62 +6,62 @@ Build the pre-release readthedocs
 **Author:** Minerva Enriquez
 
 ## Inputs
-- **Working Directory:**
+- **working_directory:**
   - **Description:** Documents root folder name
   - **Default:** 'docs'
   - **Required:** false
 
-- **Blob Endpoint:**
+- **blob_endpoint:**
   - **Description:** Azure blob endpoint
   - **Required:** true
 
-- **Target Location:**
+- **target_location:**
   - **Description:** Target Location and repo identifier, i.e. idm/repository
   - **Required:** true
 
-- **Blob Container Name:**
+- **blob_container_name:**
   - **Description:** Azure container name
   - **Required:** true
 
-- **Index HTML:**
-  - **Description:** Landing page name for your documents project, it is by default index.html
+- **index_html:**
+  - **Description:** Landing page name for your documents project, by default it is index.html
   - **Default:** 'index.html'
   - **Required:** false
 
-- **Make Text:**
-  - **Description:** Determines if the sphinx build TAR file with the text file is generated. Valid values: **true** | **false**
+- **make_text:**
+  - **Description:** Specifies if the a tar.gz file with the Text Build should be generated. Valid values are: **true** | **false**
   - **Default:** true
 
-- **Tar File Name:**
-  - **Description:** Unique TAR file name, please remember that the generation of a TAR file is fixed, and it overwrites the exitent file.
+- **tar_file_name:**
+  - **Description:** Unique TAR file name prefix, please note that the generated TAR file is placed under a fixed location and it will overwrite the existent file with the same name.
   - **Required:** true
 
-- **Tar Target Folder:**
+- **tar_target_folder:**
   - **Description:** Tar destination Folder Name
   - **Required:** false
   - **Default:** 'download/tar'
 
-- **Service Principal Credentials:**
+- **service_principal_credentials:**
   - **Description:** BLOB_JSON_SERVICE_PRINCIPAL_CREDENTIALS
   - **Required:** true
 
-- **Account Name:**
+- **account_name:**
   - **Description:** Azure Account name
   - **Required:** true
 
-- **CDN Profile Name:**
+- **cdn_profile_name:**
   - **Description:** Blob container CDN web profile name
   - **Required:** true
 
-- **CDN Endpoint Name:**
+- **cdn_endpoint_name:**
   - **Description:** Blob cdn end point name
   - **Required:** true
 
-- **Resource Group:**
+- **resource_group:**
   - **Description:** Resource group name
   - **Required:** true
 
-- **PR Update Token:**
+- **pr_update_token:**
   - **Description:** Github token
   - **Required:** true
  
