@@ -1,9 +1,17 @@
 # BuildTheDocs
-Build the pre-release readthedocs
+## Goal: 
+This GitHub Action creates intermediate HTML and Text builds for Read the Docs and then uploads the outcomes to Azure Blob storage, providing the resulting links at the end. These links are permanent and won't expire. HTML builds get uploaded to a unique location, operating as fully functional ReadTheDocs instances. On the other hand, Text builds are compressed and distributed as downloadable tar.gz files.
 
-## Name: Sphinx Azure Upload
-**Description:** Builds HTML docs, and uploads to Azure Blob storage  
+**Output sample:** <br> 
+- _https://idmdocsstaging.z5.web.core.windows.net/idm/InstituteforDiseaseModeling/emodpy-hiv/August15-162039/docs/index.html_
+- _https://idmdocsstaging.z5.web.core.windows.net/idm/InstituteforDiseaseModeling/emodpy-hiv/download/tar/emodpy-hiv.tar.gz_
+
 **Author:** Minerva Enriquez
+
+## Table of contents
+- [Inputs](#inputs)
+- [Outputs](#output)
+- [Sample](#sample)
 
 ## Inputs
 - **working_directory:**
@@ -76,11 +84,9 @@ Worflow sample:
 _</br>Please note that example above is for internal access only_
 
 ```
-. . . 
+     . . .  steps before - installing pre-requisites . . .
 
-    - name: Install emodpy-hiv requirements
-      run: |
-        >> Here your installation steps including the requiremets to build your docs (like Sphinx ) <<
+         
 
     - name: Build Documentation for HTML ReadTheDocs Preview and text build Tar file
       uses:  InstituteforDiseaseModeling/IDMBuildTheDocs@v1.0.0
@@ -98,6 +104,10 @@ _</br>Please note that example above is for internal access only_
          resource_group: 'MyResourceGroupName'
          pr_update_token: ${{ secrets.GITHUB_TOKEN }}
 
+
+
+
+    . . . steps after - for example, displaying the generated links . . .
     - name: ALL YOUR LINKS
       run: |
         echo "${{ env.LINK_URL }}"
