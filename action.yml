@@ -22,6 +22,7 @@ inputs:
   make_text:
     description: "determines if the sphinx build TAR file with the text file is generated"
     default: true
+    required: false
   tar_file_name:
     description: 'Unique TAR file name'
     required: true
@@ -47,6 +48,10 @@ inputs:
   pr_update_token:
     description: "Github token"
     required: true
+  treat_failures_as_warnings:
+    description: "By default this action will treat failures as warnings, allowing you with this to debug all possible failures in your build"
+    required: false
+    default: true
 
 outputs: 
   yourlink:
@@ -64,7 +69,7 @@ runs:
         cd ${{ inputs.working_directory }}
         echo "Working directory: ${{ inputs.working_directory }}"
         make clean
-        make htmlnobreak
+        [ ${{ inputs.treat_failures_as_warnings }} ] && (make htmlnobreak) || ( make html )
         ls -l
         
     # IF MAKE TEXT IS REQUESTED, THEN BUILD IT 
