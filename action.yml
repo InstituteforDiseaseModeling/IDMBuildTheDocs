@@ -69,7 +69,7 @@ runs:
         cd ${{ inputs.working_directory }}
         echo "Working directory: ${{ inputs.working_directory }}"
         make clean
-        [ ${{ inputs.treat_failures_as_warnings }} ] && (make htmlnobreak) || ( make html )
+        [ ${{ inputs.treat_failures_as_warnings }} ] && ( make htmlnobreak ) || ( make html )
         ls -l
         
     # IF MAKE TEXT IS REQUESTED, THEN BUILD IT 
